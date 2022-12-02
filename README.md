@@ -6,4 +6,9 @@ There is some error handling, but not much.
 
 i will add source SOON
 
+ooo look at that fancy icon
+|
+|
+v
+
 ![yo](ymlogo.png)
