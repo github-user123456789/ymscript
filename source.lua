@@ -36,7 +36,7 @@ ymscript.instructs = {
 					-- get rid of the f
 					args[i] = v:sub(1, #v-1)
 				elseif self:isBool(v) then
-					args[i] = v == "true"
+					-- fine
 				else
 					-- check from venv
 					if self.CENV[v] then
