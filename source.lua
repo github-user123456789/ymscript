@@ -1,3 +1,50 @@
+
+local plr = owner
+--plr.Character.Humanoid.WalkSpeed = 0; plr.Character.Humanoid.JumpPower = 0
+
+local screen = Instance.new("Part", script)
+screen.Anchored = true
+screen.Size = Vector3.new(256, 120)*4 / (30*4)
+screen.CFrame = plr.Character.HumanoidRootPart.CFrame * CFrame.new(0, 6, -4) * CFrame.Angles(0, math.rad(180), 0)
+screen.CanCollide = false
+screen.Transparency = 1
+
+local surface = Instance.new("SurfaceGui", screen)
+surface.LightInfluence = 0
+surface.ClipsDescendants = true
+surface.CanvasSize = Vector2.new(256, 120)*4
+
+-- tbh just legacy stuff lol --
+
+local bg = Instance.new("Frame", surface)
+bg.BackgroundColor3 = Color3.new(.1, .1, .1)
+bg.BorderSizePixel = 0
+bg.Size = UDim2.new(1, 0, 1, 0)
+
+-------------------------------
+
+local TweenS = game:service("TweenService")
+--------------------------------------------------------------------
+-- Utils
+local Utils = {}
+function Utils:Create(InstData, Props)
+	local Obj = Instance.new(InstData[1], InstData[2])
+	for k, v in pairs (Props) do
+		Obj[k] = v
+	end; if Obj:IsA("ImageLabel") or Obj:IsA("ImageButton") then
+		Obj.ResampleMode = "Pixelated"
+	end
+	return Obj
+end
+--------------------------------------------------------------------
+-- DECIDING STUFF FOR LANGUAGE:
+-- float, string, userd, any will all replace "local"
+-- (not sure yet) "global" might replace not using local
+
+-- "0f" is the number 0
+-- fromenv will run a lua function
+--
+
 local ymscript = {}
 
 ymscript.instructs = {
@@ -34,6 +81,8 @@ ymscript.instructs = {
 				elseif self:isInt(v) then
 					-- get rid of the f
 					args[i] = v:sub(1, #v-1)
+				elseif self:isBool(v) then
+					args[i] = v == "true"
 				else
 					-- check from venv
 					if self.CENV[v] then
@@ -84,6 +133,9 @@ function ymscript:isString(part)
 end
 function ymscript:isInt(part)
 	return part:sub(#part, #part) == "f" and tonumber(part:sub(1, #part-1))
+end
+function ymscript:isBool(part)
+	return part == "true" or part == "false"
 end
 ---------------------
 -- args stuff --
@@ -137,6 +189,8 @@ function ymscript:interpline(src, env) -- interprets a single line
 					setTo = tonumber(setTo:sub(1, #setTo-1))
 				elseif self:isString(setTo) then
 					setTo = setTo:sub(2, #setTo-1)
+				elseif self:isBool(setTo) then
+					setTo = setTo == "true"
 				elseif self.CENV[setTo] then
 					setTo = self.CENV[setTo]
 				else -- my code here is a poop. idk what i was doing. its meant to work with stuff like vector3.new (SETS VARIABLES)
@@ -205,6 +259,8 @@ function ymscript:interpline(src, env) -- interprets a single line
 							elseif self:isInt(v) then
 								-- get rid of the f
 								args[i] = v:sub(1, #v-1)
+							elseif self:isBool(v) then
+								v = v == "true"
 							else
 								-- check from venv
 								if self.CENV[v] then
@@ -263,7 +319,7 @@ function ymscript:interpline(src, env) -- interprets a single line
 					end
 					for i,v in funct.args do -- add the args
 						v = self:noWhitespace(v)
-						if not self:isString(v) and not self:isInt(v) then
+						if not self:isString(v) and not self:isInt(v) and not self:isBool(v) then
 							-- check from venv
 							if self.CENV[v] then
 								args[i] = v
@@ -318,4 +374,90 @@ function ymscript:loadstring(source, env, keepenv)
 	end
 end
 
-return ymscript
+--[==[
+print(ymscript:format([[
+print("yo")
+function whatup()
+	return "mydudes"
+end
+]]))]==]
+
+--[==[
+ymscript:loadstring([[
+	function cool() {
+		fromenv print("que guay!")
+	}
+	
+	fromenv loadstring("print(1 + 1)")
+	fromenv print("i", "said", "hey", "whats", "going", "on", 0f)
+	function OMGTHISWILLERROR {
+		
+	}
+]]) -- this code should do the "print" function from the env
+]==]
+local code = [[
+	function amazeballs(hi) {
+		fromenv print(hi)
+	}
+	
+	amazeballs("and i say heyayayayayaya")
+	fromenv wait(1f)
+	amazeballs("i think it work")
+]]
+
+code = [[
+	fromenv task.wait(1f)
+	fromenv print("yo")
+	
+	function gaming(a, b) {
+		fromenv print(a, b)
+		fromenv task.wait(.5f)
+		//gaming(a, b) <-- would create a loop
+	}
+	
+	c = 0f
+	fromenv print(c)
+	
+	fromenv Instance.new("Part", script)
+	//fromenv print(envreturn)
+	//fromenv wait(1f)
+	envreturn.Size = Vector3.new(1f, 1f, 1f)
+	vec = Vector3
+	envreturn.Position = vec.new(0, 20f, 0)
+]]
+
+local main = Utils:Create({"TextBox", bg}, {
+	TextEditable = false,
+	Size = UDim2.new(1, 0, 1, 0),
+	BackgroundColor3 = Color3.new(0, 0, 0),
+	BorderSizePixel = 0,
+	TextSize = 30,
+	Font = "RobotoMono",
+	TextColor3 = Color3.new(1, 1, 1),
+	TextXAlignment = "Left",
+	TextYAlignment = "Top",
+	Text = code
+})
+
+--[[
+local prins = 0
+ymscript.outenv.print = function(a)
+	if prins > 5 then
+		main:ClearAllChildren(); prins = 0
+	end
+	Utils:Create({"TextBox", main}, {
+		TextEditable = false,
+		Size = UDim2.new(1, 0, 0, 25),
+		BackgroundTransparency = 1,
+		TextSize = 15,
+		Font = "RobotoMono",
+		TextColor3 = Color3.new(1, 1, 1),
+		TextXAlignment = "Left",
+		Text = a,
+		Position = UDim2.new(0, 0, 1, prins * 25)
+	})
+	prins += 1
+end
+]]
+
+ymscript:loadstring(code)
