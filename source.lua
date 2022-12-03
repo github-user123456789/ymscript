@@ -295,8 +295,9 @@ function ymscript:interpline(src, env) -- interprets a single line
 	end
 end
 
-function ymscript:loadstring(source, env)
+function ymscript:loadstring(source, env, keepenv)
 	local lines = self:format(source)
+	if not self.env or not keepenv then
 	local env = env or getfenv()
 	self.env = env
 	self.online = 0 -- line of error (for debugging)
@@ -309,6 +310,7 @@ function ymscript:loadstring(source, env)
 		self.venv[i] = v
 	end
 	if self.setoutenv then self:setoutenv() end
+	end
 	
 	for i,v in lines do
 		ymscript:interpline(v)
