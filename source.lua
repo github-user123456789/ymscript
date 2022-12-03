@@ -308,6 +308,7 @@ function ymscript:loadstring(source, env)
 	for i,v in self.outenv do
 		self.venv[i] = v
 	end
+	if self.setoutenv then self:setoutenv() end
 	
 	for i,v in lines do
 		ymscript:interpline(v)
