@@ -134,20 +134,24 @@ function ymscript:interpline(src, env) -- interprets a single line
 			-- check if running func
 			local brack = string.find(src, "%(")
 			if string.find(src, "=") then -- making a new variable?
+				local WTH = false
+				
 				src = string.gsub(src, " ", "")
 				local equalat = string.find(src, "=")
 				local varname = src:sub(1, equalat-1)
 				local setTo = src:sub(equalat+1)
-				
+				warn(setTo, self:isString(setTo))
 				if self:isInt(setTo) then
 					setTo = tonumber(setTo:sub(1, #setTo-1))
 				elseif self:isString(setTo) then
 					setTo = setTo:sub(2, #setTo-1)
+					warn(setTo)
 				elseif self:isBool(setTo) then
 					setTo = setTo == "true"
 				elseif self.CENV[setTo] then
 					setTo = self.CENV[setTo]
 				else -- my code here is a poop. idk what i was doing. its meant to work with stuff like vector3.new (SETS VARIABLES)
+					WTH = true
 					local funct = self.CENV[setTo]
 					local functname = ""
 					if string.match(setTo, "%.") then
@@ -259,6 +263,29 @@ function ymscript:interpline(src, env) -- interprets a single line
 					if not funct then
 						error("Invalid type when trying to set variable (Line " ..tostring(self.online) ..")")
 					end
+				end
+				
+				if not WTH then
+					if string.match(varname, "%.") then
+							local indexs = string.split(varname, ".")
+							local funct = self.CENV[indexs[1]]
+							for i,v in indexs do
+								if i > 1 then
+									local brack = string.find(v, "%(")
+									if brack then
+										--print(brack, #v, v:sub(1, brack-1), funct, indexs[1])
+										local v = v:sub(1, brack-1)
+										if funct[v] then funct = funct[v] end
+									else
+										if i == #indexs then
+											if funct[v] then funct[v] = setTo end
+										else
+											if funct[v] then funct = funct[v:sub(1)] end
+										end
+									end
+								end
+							end
+						end
 				end
 				
 				self.CENV[varname] = setTo
