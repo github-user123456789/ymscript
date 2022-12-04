@@ -6,6 +6,9 @@ There is some error handling, but not much.
 
 ther is no arithmetic yet because wip
 
+if you are feel confusion and be confusion
+check wiki
+
 ooo look at that fancy icon
 
 |
