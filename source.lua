@@ -158,7 +158,7 @@ function ymscript:interpline(src, env) -- interprets a single line
 						if #indexs > 1 then
 							functname = ""
 							for i,v in indexs do
-								if i then
+								if (#indexs < 3) or i > 1 then
 									local brack = string.find(v, "%(")
 									if brack then
 										--print(brack, #v, v:sub(1, brack-1), funct, indexs[1])
@@ -173,7 +173,9 @@ function ymscript:interpline(src, env) -- interprets a single line
 							end
 						end
 					end
-					if funct and typeof(funct) == "function" then
+					if funct and (typeof(funct) == "function" or type(funct) == "userdata") then
+						local oldfuncty = funct
+						
 						local brack = string.find(src, "%(")
 						local args
 						if not brack then -- not trying to call
@@ -189,7 +191,7 @@ function ymscript:interpline(src, env) -- interprets a single line
 										if funct[v] then funct = funct[v] end
 									else
 										if i == #indexs then
-											if funct[v] then funct[v] = setTo end
+											if funct[v] then funct[v] = (type(oldfuncty) == "userdata" and oldfuncty or setTo) end
 										else
 											if funct[v] then funct = funct[v:sub(1)] end
 										end
